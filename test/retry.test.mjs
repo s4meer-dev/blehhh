@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { retry, calculateBackoff, RetryExhaustedError } from '../dist/retry.js';
+import { retry, calculateBackoff, RetryExhaustedError, createRetryPolicy } from '../dist/retry.js';
 
 test('calculateBackoff respects maxDelayMs and factor', () => {
   const delay1 = calculateBackoff(1, 100, 1000, 2, 'none');
@@ -11,6 +11,28 @@ test('calculateBackoff respects maxDelayMs and factor', () => {
 
   const delayCapped = calculateBackoff(10, 100, 1000, 2, 'none');
   assert.equal(delayCapped, 1000);
+});
+
+test('calculateBackoff respects full and decorrelated jitter bounds', () => {
+  for (let i = 1; i <= 5; i++) {
+    const fullJitter = calculateBackoff(i, 50, 500, 2, 'full');
+    assert.ok(fullJitter >= 0 && fullJitter <= 500);
+
+    const decorrelated = calculateBackoff(i, 50, 500, 2, 'decorrelated', 100);
+    assert.ok(decorrelated >= 50 && decorrelated <= 500);
+  }
+});
+
+test('createRetryPolicy executes correctly with pre-set policy', async () => {
+  const policy = createRetryPolicy({ maxRetries: 2, baseDelayMs: 5, jitter: 'none' });
+  let attempts = 0;
+  const res = await policy.execute(async (att) => {
+    attempts = att;
+    if (att < 2) throw new Error('temporary');
+    return 'ok';
+  });
+  assert.equal(res, 'ok');
+  assert.equal(attempts, 2);
 });
 
 test('retry resolves on first successful attempt', async () => {
