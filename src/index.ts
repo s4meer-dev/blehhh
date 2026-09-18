@@ -9,8 +9,10 @@ export const VERSION = '1.0.0';
 export {
   retry,
   calculateBackoff,
+  createRetryPolicy,
   RetryExhaustedError,
   type RetryOptions,
+  type RetryPolicy,
   type JitterStrategy,
 } from './retry.js';
 
@@ -70,6 +72,28 @@ export {
   type BulkheadMetrics,
 } from './bulkhead.js';
 
+// Cache-aside & Memory Cache
+export {
+  MemoryCache,
+  withCache,
+  type CacheOptions,
+  type WithCacheOptions,
+  type EvictionPolicy,
+} from './cache.js';
+
+// Hedged Requests
+export {
+  hedgedRequest,
+  AllHedgesFailedError,
+  type HedgedRequestOptions,
+} from './hedging.js';
+
+// Deadline Propagation
+export {
+  DeadlineContext,
+  DeadlineExceededError,
+} from './deadline.js';
+
 // High-level Toolkit Facade
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 import { ResilientClient, type ResilientClientOptions } from './client.js';
@@ -77,6 +101,7 @@ import { HealthRegistry } from './health.js';
 import { Logger, type LoggerOptions } from './logger.js';
 import { GracefulShutdownCoordinator, type ShutdownOptions } from './shutdown.js';
 import { Bulkhead, type BulkheadOptions } from './bulkhead.js';
+import { MemoryCache, type CacheOptions } from './cache.js';
 
 export interface ResilienceSuiteConfig {
   serviceName: string;
@@ -85,6 +110,7 @@ export interface ResilienceSuiteConfig {
   client?: ResilientClientOptions;
   logger?: LoggerOptions;
   shutdown?: ShutdownOptions;
+  cache?: CacheOptions;
 }
 
 export function createResilienceSuite(config: ResilienceSuiteConfig) {
@@ -93,6 +119,7 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
   const bulkhead = new Bulkhead(config.bulkhead);
   const health = new HealthRegistry();
   const shutdown = new GracefulShutdownCoordinator(config.shutdown);
+  const cache = new MemoryCache(config.cache);
   const client = new ResilientClient({
     circuitBreaker,
     ...config.client,
@@ -106,5 +133,6 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
     logger,
     client,
     shutdown,
+    cache,
   };
 }
