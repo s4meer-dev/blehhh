@@ -95,11 +95,36 @@ export class MemoryCache<K = string, V = unknown> {
     if (this.items.size === 0) return;
 
     if (this.evictionPolicy === 'fifo' || this.evictionPolicy === 'lru') {
-      // The first entry in Map iterator is the oldest inserted (FIFO) or oldest accessed (LRU)
       const oldestKey = this.items.keys().next().value;
       if (oldestKey !== undefined) {
         this.items.delete(oldestKey);
       }
     }
   }
+}
+
+export interface WithCacheOptions<K, V> {
+  cache: MemoryCache<K, V>;
+  key: K;
+  ttlMs?: number;
+  forceRefresh?: boolean;
+}
+
+/**
+ * Cache-aside wrapper that returns cached item if present, otherwise executes fn and stores result.
+ */
+export async function withCache<K, V>(
+  fn: () => Promise<V>,
+  options: WithCacheOptions<K, V>
+): Promise<V> {
+  if (!options.forceRefresh) {
+    const cached = options.cache.get(options.key);
+    if (cached !== undefined) {
+      return cached;
+    }
+  }
+
+  const result = await fn();
+  options.cache.set(options.key, result, options.ttlMs);
+  return result;
 }
