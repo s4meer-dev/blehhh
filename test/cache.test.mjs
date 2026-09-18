@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MemoryCache } from '../dist/cache.js';
+import { MemoryCache, withCache } from '../dist/cache.js';
 
 test('MemoryCache stores and retrieves values', () => {
   const cache = new MemoryCache();
@@ -45,4 +45,25 @@ test('MemoryCache delete and clear functions properly', () => {
 
   cache.clear();
   assert.equal(cache.size(), 0);
+});
+
+test('withCache returns cached value without executing factory again', async () => {
+  const cache = new MemoryCache();
+  let callCount = 0;
+  const fetcher = async () => {
+    callCount++;
+    return 'data-from-db';
+  };
+
+  const res1 = await withCache(fetcher, { cache, key: 'user:123' });
+  assert.equal(res1, 'data-from-db');
+  assert.equal(callCount, 1);
+
+  const res2 = await withCache(fetcher, { cache, key: 'user:123' });
+  assert.equal(res2, 'data-from-db');
+  assert.equal(callCount, 1); // Not called again!
+
+  const res3 = await withCache(fetcher, { cache, key: 'user:123', forceRefresh: true });
+  assert.equal(res3, 'data-from-db');
+  assert.equal(callCount, 2); // Refreshed
 });
