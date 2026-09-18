@@ -66,6 +66,29 @@ export function calculateBackoff(
   }
 }
 
+export interface RetryPolicy {
+  execute<T>(fn: (attempt: number) => Promise<T>): Promise<T>;
+  calculateDelay(attempt: number, previousDelay?: number): number;
+}
+
+/**
+ * Creates a reusable retry policy instance with pre-configured backoff options.
+ */
+export function createRetryPolicy(options: RetryOptions = {}): RetryPolicy {
+  return {
+    execute: (fn) => retry(fn, options),
+    calculateDelay: (attempt, prev = 0) =>
+      calculateBackoff(
+        attempt,
+        options.baseDelayMs ?? 200,
+        options.maxDelayMs ?? 10000,
+        options.factor ?? 2,
+        options.jitter ?? 'full',
+        prev
+      ),
+  };
+}
+
 /**
  * Executes an asynchronous function with exponential backoff and jitter.
  */
