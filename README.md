@@ -28,7 +28,12 @@
 
 - 🔄 **Exponential Backoff & Retry**: Sophisticated retry logic with **Full Jitter**, **Equal Jitter**, and **Decorrelated Jitter** to eliminate thundering herds.
 - ⚡ **Circuit Breaker Pattern**: High-performance finite state machine (`CLOSED` ↔ `OPEN` ↔ `HALF_OPEN`) with probe concurrency regulation.
-- ⏱️ **Rate Limiting**: Flexible traffic shaping using **Token Bucket** (burst-tolerant) and **Sliding Window Log** algorithms.
+- ⏱️ **Rate Limiting**: Flexible traffic shaping using **Token Bucket**, **Sliding Window Log**, and **Leaky Bucket** algorithms.
+- 💾 **In-Memory Cache & Cache-Aside**: High performance TTL cache with LRU / FIFO eviction and `withCache` pattern helper.
+- 🎯 **Speculative Hedged Requests**: Race primary requests against backup attempts to eliminate tail p99 latencies.
+- ⏳ **Distributed Context Deadlines**: Propagate time budgets across nested async call chains.
+- 🛡️ **Fallback Policies**: Type-safe graceful degradation policies and exception filtering.
+- 📊 **Metrics & Prometheus Exporter**: Lightweight in-memory metrics collector with p50/p90/p99 percentiles and OpenMetrics format.
 - 🌐 **Resilient HTTP Client**: Wrapper around `globalThis.fetch` combining automated retries, circuit breaking, and timeout abort controllers.
 - 📝 **Structured JSON Observability**: High-throughput logger with context binding, log levels, and automatic recursive credential redaction.
 - 🩺 **Health Check Registry**: Microservice readiness and liveness probe runner with critical vs non-critical subsystem discrimination.
