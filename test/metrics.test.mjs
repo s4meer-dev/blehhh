@@ -37,3 +37,16 @@ test('ResilienceMetricsCollector returns zeros when no latencies recorded', () =
   assert.equal(summary.mean, 0);
   assert.equal(summary.p99, 0);
 });
+
+test('ResilienceMetricsCollector serializes to Prometheus format', () => {
+  const collector = new ResilienceMetricsCollector();
+  collector.incrementCounter('circuit_breaker_trips', 3);
+  collector.recordLatency('circuit_breaker_call', 45);
+
+  const output = collector.toPrometheusFormat();
+  assert.ok(output.includes('# TYPE circuit_breaker_trips counter'));
+  assert.ok(output.includes('circuit_breaker_trips 3'));
+  assert.ok(output.includes('# TYPE circuit_breaker_call_duration_ms summary'));
+  assert.ok(output.includes('circuit_breaker_call_duration_ms{quantile="0.5"} 45'));
+  assert.ok(output.includes('circuit_breaker_call_duration_ms_count 1'));
+});
