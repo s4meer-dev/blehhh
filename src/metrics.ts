@@ -60,6 +60,29 @@ export class ResilienceMetricsCollector {
     };
   }
 
+  /**
+   * Serializes current metrics into standard Prometheus / OpenMetrics exposition format.
+   */
+  toPrometheusFormat(): string {
+    const lines: string[] = [];
+
+    for (const [name, value] of this.counters.entries()) {
+      lines.push(`# TYPE ${name} counter`);
+      lines.push(`${name} ${value}`);
+    }
+
+    for (const [name] of this.latencies.entries()) {
+      const s = this.getLatencySummary(name);
+      lines.push(`# TYPE ${name}_duration_ms summary`);
+      lines.push(`${name}_duration_ms{quantile="0.5"} ${s.p50}`);
+      lines.push(`${name}_duration_ms{quantile="0.9"} ${s.p90}`);
+      lines.push(`${name}_duration_ms{quantile="0.99"} ${s.p99}`);
+      lines.push(`${name}_duration_ms_count ${s.count}`);
+    }
+
+    return lines.join('\n');
+  }
+
   reset(): void {
     this.counters.clear();
     this.latencies.clear();
