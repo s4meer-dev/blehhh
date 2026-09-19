@@ -63,6 +63,34 @@ export class CircuitBreaker extends EventEmitter {
     return this.state;
   }
 
+  public isClosed(): boolean {
+    return this.getState() === 'CLOSED';
+  }
+
+  public isOpen(): boolean {
+    return this.getState() === 'OPEN';
+  }
+
+  public isHalfOpen(): boolean {
+    return this.getState() === 'HALF_OPEN';
+  }
+
+  public onStateChange(listener: (event: { from: CircuitState; to: CircuitState }) => void): this {
+    return this.on('stateChange', listener);
+  }
+
+  public onReject(listener: (error: CircuitBreakerOpenError) => void): this {
+    return this.on('reject', listener);
+  }
+
+  public onSuccess(listener: () => void): this {
+    return this.on('success', listener);
+  }
+
+  public onFailure(listener: (error: Error) => void): this {
+    return this.on('failure', listener);
+  }
+
   public getMetrics(): CircuitBreakerMetrics {
     this.checkCooldown();
     return {
