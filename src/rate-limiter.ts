@@ -1,6 +1,6 @@
 /**
  * blehh - Rate Limiter Implementations
- * Features Token Bucket and Sliding Window Log algorithms.
+ * Features Token Bucket, Sliding Window Log, and Leaky Bucket algorithms.
  */
 
 export interface TokenBucketOptions {
@@ -96,5 +96,56 @@ export class SlidingWindowRateLimiter {
     }
 
     return Math.max(0, this.maxRequests - this.timestamps.length);
+  }
+}
+
+export interface LeakyBucketOptions {
+  /** Maximum capacity of the leaky bucket */
+  capacity: number;
+  /** Leak rate (number of items processed per interval) */
+  leakRate: number;
+  /** Leak interval in milliseconds (default: 1000) */
+  leakIntervalMs?: number;
+}
+
+/**
+ * Leaky bucket rate limiter for smoothing bursts into constant-rate flow.
+ */
+export class LeakyBucketRateLimiter {
+  private level: number = 0;
+  private readonly capacity: number;
+  private readonly leakRate: number;
+  private readonly leakIntervalMs: number;
+  private lastLeakTimestamp: number;
+
+  constructor(options: LeakyBucketOptions) {
+    this.capacity = options.capacity;
+    this.leakRate = options.leakRate;
+    this.leakIntervalMs = options.leakIntervalMs ?? 1000;
+    this.lastLeakTimestamp = Date.now();
+  }
+
+  private leak(): void {
+    const now = Date.now();
+    const elapsed = now - this.lastLeakTimestamp;
+    const leaked = (elapsed / this.leakIntervalMs) * this.leakRate;
+    if (leaked > 0) {
+      this.level = Math.max(0, this.level - leaked);
+      this.lastLeakTimestamp = now;
+    }
+  }
+
+  public tryAdd(amount = 1): boolean {
+    this.leak();
+    if (this.level + amount <= this.capacity) {
+      this.level += amount;
+      return true;
+    }
+    return false;
+  }
+
+  public getCurrentWaterLevel(): number {
+    this.leak();
+    return Math.round(this.level * 100) / 100;
   }
 }
