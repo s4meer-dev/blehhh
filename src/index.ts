@@ -29,8 +29,10 @@ export {
 export {
   TokenBucketRateLimiter,
   SlidingWindowRateLimiter,
+  LeakyBucketRateLimiter,
   type TokenBucketOptions,
   type SlidingWindowOptions,
+  type LeakyBucketOptions,
 } from './rate-limiter.js';
 
 // Observability Logger
@@ -94,6 +96,20 @@ export {
   DeadlineExceededError,
 } from './deadline.js';
 
+// Metrics & Telemetry
+export {
+  ResilienceMetricsCollector,
+  type LatencySummary,
+} from './metrics.js';
+
+// Fallback & Graceful Degradation
+export {
+  withFallback,
+  FallbackPolicy,
+  type FallbackOptions,
+  type FallbackHandler,
+} from './fallback.js';
+
 // High-level Toolkit Facade
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 import { ResilientClient, type ResilientClientOptions } from './client.js';
@@ -102,6 +118,7 @@ import { Logger, type LoggerOptions } from './logger.js';
 import { GracefulShutdownCoordinator, type ShutdownOptions } from './shutdown.js';
 import { Bulkhead, type BulkheadOptions } from './bulkhead.js';
 import { MemoryCache, type CacheOptions } from './cache.js';
+import { ResilienceMetricsCollector } from './metrics.js';
 
 export interface ResilienceSuiteConfig {
   serviceName: string;
@@ -120,6 +137,7 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
   const health = new HealthRegistry();
   const shutdown = new GracefulShutdownCoordinator(config.shutdown);
   const cache = new MemoryCache(config.cache);
+  const metrics = new ResilienceMetricsCollector();
   const client = new ResilientClient({
     circuitBreaker,
     ...config.client,
@@ -134,5 +152,6 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
     client,
     shutdown,
     cache,
+    metrics,
   };
 }
