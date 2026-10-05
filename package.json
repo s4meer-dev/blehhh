@@ -9,9 +9,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "test": "node --test dist/**/*.test.js",
-    "lint": "tsc --noEmit"
+    "build": "npx -y -p typescript tsc",
+    "test": "node --test test/**/*.test.mjs",
+    "lint": "npx -y -p typescript tsc --noEmit"
   },
   "keywords": [
     "resilience",
@@ -36,6 +36,7 @@
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "@types/node": "^26.6.4",
+    "typescript": "^5.9.3"
   }
 }

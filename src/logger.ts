@@ -88,8 +88,8 @@ export class Logger {
       level: level.toUpperCase(),
       service: this.service,
       message,
-      ...this.redact(this.context),
-      ...(meta ? this.redact(meta) : {}),
+      ...(this.redact(this.context) as Record<string, unknown>),
+      ...(meta ? (this.redact(meta) as Record<string, unknown>) : {}),
     };
 
     this.outputFn(JSON.stringify(payload));
