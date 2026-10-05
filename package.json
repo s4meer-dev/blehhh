@@ -1,0 +1,41 @@
+{
+  "name": "blehh",
+  "version": "1.0.0",
+  "description": "Modern, zero-dependency resilience and fault-tolerance toolkit for TypeScript and Node.js",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --test dist/**/*.test.js",
+    "lint": "tsc --noEmit"
+  },
+  "keywords": [
+    "resilience",
+    "circuit-breaker",
+    "retry",
+    "exponential-backoff",
+    "rate-limiter",
+    "fault-tolerance",
+    "typescript"
+  ],
+  "author": "Sameer <sameer3sn7@gmail.com> (https://github.com/s4meer-dev)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/s4meer-dev/blehhh.git"
+  },
+  "bugs": {
+    "url": "https://github.com/s4meer-dev/blehhh/issues"
+  },
+  "homepage": "https://github.com/s4meer-dev/blehhh#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
