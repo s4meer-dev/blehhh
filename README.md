@@ -148,6 +148,28 @@ if (limiter.tryConsume(1)) {
 }
 ```
 
+### Bulkhead Concurrency Isolation
+
+Isolate critical execution threads to prevent one slow dependency from consuming all event loop slots:
+
+```typescript
+import { Bulkhead } from 'blehh';
+
+const bulkhead = new Bulkhead({
+  maxConcurrent: 5,  // Max parallel in-flight executions
+  maxQueue: 10,      // Max queued requests before fast rejection
+  timeoutMs: 5000,   // Max duration allowed per operation
+  fallback: (err) => ({ status: 'degraded', cached: true }),
+});
+
+const result = await bulkhead.execute(async () => {
+  return await fetchThirdPartyAnalytics();
+});
+
+console.log(bulkhead.getMetrics());
+// { activeExecutions: 0, queuedExecutions: 0, completedCount: 1, rejectedCount: 0, ... }
+```
+
 ### Health & Liveness Probes
 
 ```typescript
