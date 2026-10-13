@@ -195,6 +195,42 @@ const report = await health.getReport();
 console.log(report.status); // 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY'
 ```
 
+### Policy Pipeline Orchestration
+
+Compose multiple fault tolerance policies into a single sequential execution pipeline:
+
+```typescript
+import {
+  PolicyPipeline,
+  composePolicies,
+  CircuitBreaker,
+  Bulkhead,
+  FallbackPolicy,
+  createRetryPolicy,
+} from 'blehh';
+
+const fallback = new FallbackPolicy({
+  fallback: () => ({ cached: true, data: [] }),
+});
+
+const retry = createRetryPolicy({ maxRetries: 3, baseDelayMs: 200 });
+const breaker = new CircuitBreaker({ failureThreshold: 5 });
+const bulkhead = new Bulkhead({ maxConcurrent: 10, maxQueue: 20 });
+
+// Order: Fallback (outer) -> Retry -> CircuitBreaker -> Bulkhead (inner)
+const pipeline = new PolicyPipeline({ name: 'PaymentGateway' })
+  .pipe(fallback, 'Fallback')
+  .pipe(retry, 'Retry')
+  .pipe(breaker, 'CircuitBreaker')
+  .pipe(bulkhead, 'Bulkhead');
+
+const response = await pipeline.execute(async () => {
+  return await processPayment();
+});
+
+console.log(pipeline.getMetrics());
+```
+
 ---
 
 ## Development & Testing

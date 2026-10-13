@@ -110,6 +110,17 @@ export {
   type FallbackHandler,
 } from './fallback.js';
 
+// Composable Policy Pipeline
+export {
+  PolicyPipeline,
+  composePolicies,
+  type IPolicy,
+  type PolicyAction,
+  type PolicyStep,
+  type PipelineMetrics,
+  type PipelineExecutionHooks,
+} from './pipeline.js';
+
 // High-level Toolkit Facade
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 import { ResilientClient, type ResilientClientOptions } from './client.js';
