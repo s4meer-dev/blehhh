@@ -231,6 +231,28 @@ const response = await pipeline.execute(async () => {
 console.log(pipeline.getMetrics());
 ```
 
+### Adaptive Concurrency Limiting
+
+Self-tuning concurrency limiter using additive-increase multiplicative-decrease (AIMD) and latency gradient feedback to prevent cascading downstream exhaustion:
+
+```typescript
+import { AdaptiveConcurrencyLimiter } from 'blehh';
+
+const limiter = new AdaptiveConcurrencyLimiter({
+  initialLimit: 10,
+  minLimit: 2,
+  maxLimit: 50,
+  backoffRatio: 0.8, // Drop concurrency by 20% on latency congestion
+  toleranceFactor: 1.5, // Flag congestion when RTT > 1.5x minimum RTT
+});
+
+const result = await limiter.execute(async () => {
+  return await fetchUpstreamResource();
+});
+
+console.log(limiter.getMetrics());
+```
+
 ---
 
 ## Development & Testing
