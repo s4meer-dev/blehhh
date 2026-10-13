@@ -121,6 +121,14 @@ export {
   type PipelineExecutionHooks,
 } from './pipeline.js';
 
+// Adaptive Concurrency Limiter
+export {
+  AdaptiveConcurrencyLimiter,
+  AdaptiveLimiterRejectedError,
+  type AdaptiveLimiterOptions,
+  type AdaptiveLimiterMetrics,
+} from './adaptive-limiter.js';
+
 // High-level Toolkit Facade
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 import { ResilientClient, type ResilientClientOptions } from './client.js';
