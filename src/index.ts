@@ -129,6 +129,14 @@ export {
   type AdaptiveLimiterMetrics,
 } from './adaptive-limiter.js';
 
+// SingleFlight Request Coalescing
+export {
+  SingleFlightGroup,
+  createSingleFlight,
+  type SingleFlightResult,
+  type SingleFlightMetrics,
+} from './singleflight.js';
+
 // High-level Toolkit Facade
 import { CircuitBreaker, type CircuitBreakerOptions } from './circuit-breaker.js';
 import { ResilientClient, type ResilientClientOptions } from './client.js';
@@ -138,6 +146,7 @@ import { GracefulShutdownCoordinator, type ShutdownOptions } from './shutdown.js
 import { Bulkhead, type BulkheadOptions } from './bulkhead.js';
 import { MemoryCache, type CacheOptions } from './cache.js';
 import { ResilienceMetricsCollector } from './metrics.js';
+import { SingleFlightGroup } from './singleflight.js';
 
 export interface ResilienceSuiteConfig {
   serviceName: string;
@@ -157,6 +166,7 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
   const shutdown = new GracefulShutdownCoordinator(config.shutdown);
   const cache = new MemoryCache(config.cache);
   const metrics = new ResilienceMetricsCollector();
+  const singleFlight = new SingleFlightGroup();
   const client = new ResilientClient({
     circuitBreaker,
     ...config.client,
@@ -172,5 +182,6 @@ export function createResilienceSuite(config: ResilienceSuiteConfig) {
     shutdown,
     cache,
     metrics,
+    singleFlight,
   };
 }

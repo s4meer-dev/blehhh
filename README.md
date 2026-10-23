@@ -30,6 +30,7 @@
 - ⚡ **Circuit Breaker Pattern**: High-performance finite state machine (`CLOSED` ↔ `OPEN` ↔ `HALF_OPEN`) with probe concurrency regulation.
 - ⏱️ **Rate Limiting**: Flexible traffic shaping using **Token Bucket**, **Sliding Window Log**, and **Leaky Bucket** algorithms.
 - 💾 **In-Memory Cache & Cache-Aside**: High performance TTL cache with LRU / FIFO eviction and `withCache` pattern helper.
+- 🔀 **SingleFlight Request Coalescing**: Suppress duplicate concurrent in-flight executions for identical keys to eliminate cache stampedes and dog-piling.
 - 🎯 **Speculative Hedged Requests**: Race primary requests against backup attempts to eliminate tail p99 latencies.
 - ⏳ **Distributed Context Deadlines**: Propagate time budgets across nested async call chains.
 - 🛡️ **Fallback Policies**: Type-safe graceful degradation policies and exception filtering.
@@ -251,6 +252,33 @@ const result = await limiter.execute(async () => {
 });
 
 console.log(limiter.getMetrics());
+```
+
+### SingleFlight Request Coalescing
+
+Coalesce multiple concurrent in-flight requests for the same key into a single underlying promise execution, completely eliminating cache stampedes and downstream database dog-piling:
+
+```typescript
+import { createSingleFlight } from 'blehh';
+
+const sf = createSingleFlight();
+
+// 10 concurrent requests arrive for the exact same cache-missed resource:
+const fetchUser = (id: string) =>
+  sf.do(`user:${id}`, async () => {
+    return await db.users.findById(id); // Executes ONLY ONCE!
+  });
+
+const results = await Promise.all([
+  fetchUser('42'),
+  fetchUser('42'),
+  fetchUser('42'),
+]);
+
+console.log(results[0].shared); // false (primary leader)
+console.log(results[1].shared); // true (coalesced caller)
+console.log(sf.metrics());
+// { inFlightCount: 0, totalCalls: 3, sharedExecutions: 2, ... }
 ```
 
 ---
